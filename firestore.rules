@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // الأدمن = حساب أمين تحديداً (UID)، وليس أي مستخدم مسجّل
+    function isAdmin() {
+      return request.auth != null
+             && request.auth.uid == 'tcWHqDIns1aPr8uUdGRMRR5TgDR2';
+    }
+
+    // ===== نظام التوظيف hiring (موجود مسبقاً — لا تحذفه) =====
+    match /config/{document} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /applicants/{id} {
+      allow create: if true;
+      allow update: if isAdmin()
+                    || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['trialConsent','declineReason']);
+      allow read, delete: if isAdmin();
+    }
+
+    // ===== Elite Editor System (الفورم الجديد) =====
+    // أي زائر يرسل رداً جديداً (إنشاء فقط)؛ القراءة والحذف للأدمن فقط
+    match /elite_responses/{id} {
+      allow create: if true;
+      allow read, delete: if isAdmin();
+    }
+  }
+}

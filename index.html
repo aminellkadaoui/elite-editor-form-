@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elite Editor System — نموذج الإديتور</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#0f6bff;--btn:#0066ff;--label:#3f8bff;--ink:#0f1720;--soft:#5b6472;--faint:#76808f;
+  --line:#e8ecf3;--bg:#f6f8fc;--card:#fff;--ok:#128a4f;--err:#c0392b;
+  --ar:'IBM Plex Sans Arabic',sans-serif;--mono:'IBM Plex Mono',monospace;
+  --t-fast:180ms;--t-normal:350ms;--ease:cubic-bezier(.22,1,.36,1);--ease-sharp:cubic-bezier(.4,0,.2,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--ar);background:var(--bg);color:var(--ink);line-height:1.7;-webkit-font-smoothing:antialiased}
+.wrap{max-width:640px;margin:0 auto;padding:0 20px 80px}
+
+/* هيدر ثابت + شريط تقدم */
+.top{position:sticky;top:0;z-index:20;background:rgba(246,248,252,.85);backdrop-filter:blur(16px) saturate(150%);-webkit-backdrop-filter:blur(16px) saturate(150%);padding:14px 0 12px;margin-bottom:8px}
+.top .wrap{padding-bottom:0}
+.brandrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:16px}
+.brand .dot{width:10px;height:10px;border-radius:50%;background:var(--blue)}
+.stepno{font-family:var(--mono);font-size:12.5px;color:var(--faint);direction:ltr}
+.pbar{height:6px;background:#e8ecf3;border-radius:99px;overflow:hidden}
+.pbar i{display:block;height:100%;background:var(--blue);border-radius:99px;transition:width var(--t-normal) var(--ease)}
+
+/* مقدمة */
+.intro{padding:44px 0 10px;text-align:center}
+.intro .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.15em;color:var(--label);text-transform:uppercase;direction:ltr}
+.intro h1{font-weight:700;font-size:clamp(24px,5vw,34px);margin:8px 0 12px;line-height:1.4}
+.intro h1 span{color:var(--blue)}
+.intro p{color:var(--soft);font-size:15px;max-width:520px;margin:0 auto 10px}
+.intro .meta{font-size:13.5px;color:var(--faint);margin-top:16px}
+
+/* القسم */
+.step{display:none;animation:fadeUp var(--t-normal) var(--ease)}
+.step.on{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.seccard{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:26px 22px;margin-top:14px}
+.sechead{margin-bottom:18px}
+.sechead .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;color:var(--label);text-transform:uppercase;direction:ltr;margin-bottom:6px}
+.sechead h2{font-size:19px;font-weight:700}
+
+/* الأسئلة */
+.q{margin-bottom:22px}
+.q:last-child{margin-bottom:0}
+.q>label.qlbl{display:block;font-size:15.5px;font-weight:600;margin-bottom:4px}
+.q .hint{font-size:13px;color:var(--faint);margin-bottom:10px}
+.req{color:var(--blue)}
+
+input[type=text],input[type=tel],input[type=email],textarea{
+  width:100%;font-family:var(--ar);font-size:15px;color:var(--ink);
+  border:1px solid var(--line);border-radius:12px;padding:11px 14px;background:#fff;outline:none;
+  transition:border-color var(--t-fast) var(--ease-sharp)}
+input:focus,textarea:focus{border-color:rgba(15,107,255,.5)}
+input.bad,textarea.bad{border-color:#f0b4b4}
+textarea{min-height:96px;resize:vertical;line-height:1.7}
+input[dir=ltr]{direction:ltr;text-align:right;font-family:var(--mono)}
+
+/* خيارات radio / checkbox كبطاقات */
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:12px;padding:11px 14px;cursor:pointer;
+  transition:border-color var(--t-fast) var(--ease-sharp),background-color var(--t-fast) var(--ease-sharp);user-select:none}
+.opt:hover{border-color:rgba(15,107,255,.4);background:#f9fbff}
+.opt input{position:absolute;opacity:0;pointer-events:none}
+.opt .box{flex:0 0 20px;width:20px;height:20px;border:2px solid #cfd8e6;border-radius:50%;display:grid;place-items:center;transition:border-color var(--t-fast) var(--ease-sharp)}
+.opt.cb .box{border-radius:6px}
+.opt .box::after{content:'';width:9px;height:9px;border-radius:50%;background:var(--blue);transform:scale(0);transition:transform var(--t-fast) var(--ease-sharp)}
+.opt.cb .box::after{border-radius:2px}
+.opt .txt{font-size:14.5px;flex:1}
+.opt.sel{border-color:var(--blue);background:#eef4ff}
+.opt.sel .box{border-color:var(--blue)}
+.opt.sel .box::after{transform:scale(1)}
+.otherwrap{margin-top:8px;display:none}
+.otherwrap.on{display:block}
+
+/* مقياس 1-10 */
+.scale{display:flex;gap:6px;flex-wrap:wrap;direction:ltr;justify-content:space-between}
+.scale button{flex:1;min-width:34px;height:44px;border:1px solid var(--line);background:#fff;border-radius:10px;font-family:var(--mono);font-size:15px;color:var(--soft);cursor:pointer;
+  transition:transform var(--t-fast) var(--ease-sharp),border-color var(--t-fast) var(--ease-sharp),background-color var(--t-fast) var(--ease-sharp)}
+.scale button:hover{border-color:rgba(15,107,255,.45)}
+.scale button:active{transform:scale(.94)}
+.scale button.sel{background:var(--btn);color:#fff;border-color:var(--btn)}
+.scale-ends{display:flex;justify-content:space-between;font-size:12px;color:var(--faint);margin-top:8px}
+
+/* أزرار التنقل */
+.nav{display:flex;align-items:center;gap:12px;margin-top:22px}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:50px;padding:0 28px;border-radius:60px;
+  font-family:var(--ar);font-weight:600;font-size:16px;border:0;cursor:pointer;transition:transform var(--t-fast) var(--ease-sharp),background-color var(--t-fast) var(--ease-sharp)}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--btn);color:#fff;flex:1}
+.btn-primary:hover{background:#0057db}
+.btn-primary:disabled{opacity:.6;cursor:wait}
+.btn-ghost{background:#fff;border:1px solid var(--line);color:var(--soft);height:50px;padding:0 20px;border-radius:60px;font-weight:600;cursor:pointer}
+.btn-ghost:hover{border-color:rgba(15,107,255,.35);color:var(--blue)}
+.err-msg{display:none;background:#fdf3f3;border:1px solid #f3cfcf;color:var(--err);border-radius:12px;padding:11px 16px;font-size:14px;margin-top:14px}
+.err-msg.on{display:block}
+
+/* شاشة الشكر */
+.done{display:none;text-align:center;padding:60px 0}
+.done.on{display:block;animation:fadeUp var(--t-normal) var(--ease)}
+.done .ic{width:78px;height:78px;border-radius:50%;background:#eaf7f0;color:var(--ok);display:grid;place-items:center;margin:0 auto 20px;font-size:38px}
+.done h2{font-size:24px;font-weight:700;margin-bottom:10px}
+.done p{color:var(--soft);font-size:15.5px;max-width:460px;margin:0 auto}
+footer{text-align:center;padding:30px 0 0;color:var(--faint);font-size:12.5px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="top" id="topbar" style="display:none">
+  <div class="wrap">
+    <div class="brandrow">
+      <span class="brand"><span class="dot"></span>Elite Editor System</span>
+      <span class="stepno" id="stepno">1 / 9</span>
+    </div>
+    <div class="pbar"><i id="pfill" style="width:0%"></i></div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- المقدمة -->
+  <div id="introScreen">
+    <div class="intro">
+      <div class="kicker">Elite Editor System</div>
+      <h1>ساعدنا في بناء <span>نظام الإديتور المحترف</span></h1>
+      <p>نريد أن نتعرف عليك أكثر كإديتور. نطوّر برنامجًا عمليًا يرفع مستوى مهارتك، يحسّن طريقة عملك، ويحوّل الإيديتنج إلى قيمة ودخل أفضل.</p>
+      <p>نريد أن نفهم وضعك الحالي، أكبر تحدياتك، والنتيجة التي تريد الوصول إليها فعلًا — لنبني البرنامج على احتياجات حقيقية، لا تخمين.</p>
+      <div class="meta">⏱ التعبئة تستغرق تقريبًا 3–5 دقائق · إجاباتك محفوظة تلقائيًا</div>
+    </div>
+    <div class="nav"><button class="btn btn-primary" id="startBtn">ابدأ الآن</button></div>
+  </div>
+
+  <!-- الأقسام تُبنى هنا -->
+  <form id="form" style="display:none"></form>
+
+  <!-- الشكر -->
+  <div class="done" id="doneScreen">
+    <div class="ic">✓</div>
+    <h2>وصلتنا إجاباتك، شكرًا لك 🙏</h2>
+    <p>سنراجعها بعناية، وقد نتواصل معك عبر واتساب لفهم وضعك أكثر أو لإرسال تفاصيل النسخة الأولى من البرنامج. نراك من الإديتورز الجادين.</p>
+  </div>
+
+  <footer>Elite Editor System · Amine Editing Team</footer>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyCZhafPqlaBoapQ8df0Y_U8KzKyHKsNE-k",
+  authDomain: "hiring-9104c.firebaseapp.com",
+  projectId: "hiring-9104c",
+  storageBucket: "hiring-9104c.firebasestorage.app",
+  messagingSenderId: "300070302147",
+  appId: "1:300070302147:web:f6af240cb1f74763308d76"
+};
+const db = getFirestore(initializeApp(firebaseConfig));
+const COLLECTION = "elite_responses";
+const LS = "elite_editor_form_v1";
+
+/* ── سكيمة الفورم (٩ أقسام) ── */
+const R=(k,label,opts,other,req)=>({k,label,type:'radio',opts,other,req});
+const C=(k,label,opts,other)=>({k,label,type:'checkbox',opts,other});
+const T=(k,label,hint,req,long)=>({k,label,hint,type:long?'textarea':'text',req});
+const SCALE=(k,label,lo,hi)=>({k,label,type:'scale',lo,hi});
+
+const SECTIONS=[
+ {t:"معلومات أساسية",qs:[
+   T("name","ما اسمك؟",null,true),
+   {k:"whatsapp",label:"ما رقمك على WhatsApp؟",hint:"سنستخدمه لإرسال تحديثات البرنامج أو التواصل عند الحاجة.",type:"tel",req:true},
+   T("country","في أي دولة تعيش حاليًا؟",null,true),
+   R("current_status","ما وضعك الحالي؟",["طالب يتعلم الإيديتنج","إديتور مستقل","إديتور مع عملاء بشكل متقطع","إديتور مع عميل ثابت","إديتور داخل فريق أو وكالة","إديتور داخل شركة أو Brand","أبحث عن أول فرصة عمل"],true,true),
+ ]},
+ {t:"مستواك الحالي في الإيديتنج",qs:[
+   R("experience","منذ متى وأنت تتعلم أو تعمل في الإيديتنج؟",["أقل من 3 أشهر","من 3 إلى 6 أشهر","من 6 أشهر إلى سنة","من سنة إلى سنتين","أكثر من سنتين"]),
+   C("software","ما البرامج التي تستطيع استخدامها؟",["Adobe Premiere Pro","Adobe After Effects","DaVinci Resolve","CapCut","Blender","Photoshop","Illustrator"],true),
+   C("video_types","ما أنواع الفيديوهات التي تنفّذها حاليًا؟",["Short-form Content","Talking-head Videos","Podcast Clips","YouTube Videos","Ads","محتوى تعليمي","Documentary Content","Motion Graphics","لا أستطيع تنفيذ مشروع كامل حتى الآن"],true),
+   SCALE("self_rating","كيف تقيّم مستواك الحالي؟","أعرف الأدوات الأساسية فقط","أستلم مشروعًا وأنفّذه وأسلّمه باستقلالية"),
+   R("portfolio","هل لديك Portfolio حاليًا؟",["نعم، ولدي أعمال أفتخر بها","نعم، لكنه لا يمثل مستواي الحقيقي","لدي بعض الأعمال المتفرقة فقط","لا أملك Portfolio","ما زلت أبني أول أعمالي"]),
+ ]},
+ {t:"وضعك المالي والمهني الحالي",qs:[
+   R("price_per_video","متوسط السعر الذي تحصل عليه مقابل الفيديو الواحد حاليًا؟",["لم أحصل على أي عمل مدفوع بعد","أقل من 10$","من 10$ إلى 29$","من 30$ إلى 59$","من 60$ إلى 99$","من 100$ إلى 299$","300$ أو أكثر","لا أعمل بنظام سعر الفيديو"]),
+   R("monthly_income","متوسط دخلك الشهري من الإيديتنج حاليًا؟",["لا أحقق دخلًا من الإيديتنج","أقل من 50$","من 50$ إلى 199$","من 200$ إلى 499$","من 500$ إلى 999$","1000$ أو أكثر","الدخل غير ثابت ويختلف كثيرًا"]),
+   C("opportunity_sources","من أين تحصل على فرص العمل حاليًا؟",["منصات العمل الحر","التواصل البارد","العلاقات والإحالات","Instagram","LinkedIn","Discord أو Communities","وكالة أو فريق","عميل ثابت","لا أحصل على فرص حاليًا"],true),
+   R("biggest_barrier","ما أكبر مشكلة تمنعك من رفع قيمة عملك أو سعره؟",["مستوايَ التقني غير كافٍ","لا أعرف كيف أفكر وأتخذ قرارات الإيديتنج","أعتمد كثيرًا على الـReferences والتقليد","مستوى أعمالي غير ثابت","أستغرق وقتًا طويلًا في التنفيذ","لا أملك Workflow واضحًا","لا أملك Portfolio قويًا","لا أعرف كيف أجد الفرص المناسبة","لا أعرف كيف أقدّم قيمتي أو أبيع خدمتي","لا أملك ثقة كافية في مستواي","العملاء الذين أصل إليهم ميزانيتهم ضعيفة"],true),
+ ]},
+ {t:"التحديات الحالية",qs:[
+   T("biggest_challenge","ما أكبر تحدٍّ تواجهه حاليًا كإديتور؟","اشرح المشكلة بطريقتك، حتى لو كانت مختلفة عن الخيارات السابقة.",false,true),
+   T("challenge_impact","كيف يؤثر هذا التحدي على عملك أو دخلك؟",null,false,true),
+   T("tried_before","ما الذي جربته سابقًا لحل هذه المشكلة؟","كورس، Tutorials، Community، تدريب، تواصل مع عملاء... أي شيء.",false,true),
+   T("why_didnt_work","لماذا تعتقد أن ما جربته لم يعطك النتيجة التي تريدها؟",null,false,true),
+ ]},
+ {t:"النتيجة التي تريد الوصول إليها",qs:[
+   T("one_problem","لو استطعت حل مشكلة واحدة فقط في مستواك أو عملك، فما المشكلة التي ستختارها؟",null,false,true),
+   T("concrete_result","ما النتيجة الملموسة التي تريد تحقيقها من الإيديتنج؟","سعر مشروع، دخل شهري، نوع عميل، وظيفة، مستوى مهارة... بطريقتك.",false,true),
+   R("most_valuable","أي نتيجة ستكون الأكثر قيمة بالنسبة لك؟",["رفع مستوى جودة أعمالي","تنفيذ المشاريع بسرعة أكبر","بناء Portfolio قوي","رفع متوسط سعر الفيديو","الحصول على عميل ثابت","العمل داخل فريق أو وكالة","الحصول على وظيفة كإديتور","تحقيق دخل شهري ثابت","تعلّم كيفية تقديم وبيع مهارتي"],true),
+   R("target_price","ما متوسط السعر الذي تريد الوصول إليه مقابل الفيديو الواحد؟",["من 30$ إلى 59$","من 60$ إلى 99$","من 100$ إلى 299$","من 300$ إلى 499$","500$ أو أكثر","لا أريد العمل بنظام سعر الفيديو","لست متأكدًا بعد"]),
+   R("target_income","ما الدخل الشهري الذي تريد الوصول إليه من الإيديتنج؟",["من 100$ إلى 299$","من 300$ إلى 499$","من 500$ إلى 999$","من 1000$ إلى 1999$","2000$ أو أكثر","لا أملك هدفًا محددًا حاليًا"]),
+   R("realistic_timeframe","خلال أي مدة تعتقد أن الوصول إلى هذه النتيجة واقعي بالنسبة لك؟",["خلال شهر","خلال 3 أشهر","خلال 6 أشهر","خلال سنة","لا أعرف"],true),
+   T("why_important","لماذا هذه النتيجة مهمة بالنسبة لك؟",null,false,true),
+   T("what_changes","ما الذي سيتغير في حياتك أو عملك عند تحقيقها؟",null,false,true),
+ ]},
+ {t:"اختبار وعد البرنامج",qs:[
+   R("most_attractive_promise","أي وعد يجذبك أكثر؟",["الانتقال من فيديوهات منخفضة السعر إلى بيع الفيديو بسعر أعلى","الوصول إلى أول عميل ثابت","بناء Portfolio يؤهلني للعمل مع وكالات وفرق أفضل","الوصول إلى دخل شهري ثابت","الوصول إلى مستوى استلام مشروع من الـBrief إلى الـDelivery","الحصول على وظيفة أو فرصة داخل فريق"],true),
+   T("success_sentence","أكمل: سأعتبر البرنامج ناجحًا إذا ساعدني على ______",null,false,true),
+   T("must_include","ما الذي يجب أن يتضمنه البرنامج حتى تشعر أنه يستطيع فعلًا مساعدتك؟",null,false,true),
+ ]},
+ {t:"طريقة التعلم والـDelivery",qs:[
+   C("support_needed","ما نوع الدعم الذي تحتاجه أكثر؟",["دروس مسجلة ومنظمة","مشاريع عملية","Feedback مباشر على أعمالي","Revisions وإعادة تسليم","جلسات Live","مراجعة Portfolio","Community للإديتورز","Templates وSOPs","Checklists وWorkflow جاهز","Accountability ومتابعة","تدريب على إيجاد الفرص والعملاء","تدريب على تقديم وبيع المهارة","محاكاة العمل داخل فريق أو وكالة"]),
+   R("stage_needed","أي مرحلة تحتاجها أكثر حاليًا؟",["Elite Editor Foundations — بناء الأساس والتفكير وفهم المحتوى واتخاذ القرارات","Work Like an Elite Editor — تطوير التنفيذ والـWorkflow والمشاريع والـDelivery","Turn Your Skill Into Money — بناء الإثبات وتسويق المهارة والوصول لعمل ودخل أعلى","أحتاج المراحل الثلاث كلها"]),
+   R("ready_projects_feedback","هل أنت مستعد لتنفيذ مشاريع، استقبال Feedback وإعادة العمل أكثر من مرة؟",["نعم، هذا ما أبحث عنه","نعم، لكن وقتي محدود","أفضّل مشاهدة الدروس فقط","لست متأكدًا"]),
+   R("weekly_hours","كم ساعة تستطيع تخصيصها أسبوعيًا للتعلم والتطبيق؟",["أقل من ساعتين","من ساعتين إلى 5 ساعات","من 5 إلى 10 ساعات","أكثر من 10 ساعات"]),
+ ]},
+ {t:"الميزانية والجاهزية",qs:[
+   R("budget","كم يمكنك أن تستثمر في برنامج يرفع مستواك وقيمة عملك؟",["لا أستطيع الاستثمار حاليًا","من 1$ إلى 29$","من 30$ إلى 59$","من 60$ إلى 99$","من 100$ إلى 199$","200$ أو أكثر إذا كان الدعم والنتيجة يستحقان"]),
+   T("what_makes_yes","ما الذي سيجعلك تقول: «نعم، هذا البرنامج مناسب لي»؟",null,false,true),
+   C("what_prevents","ما الذي قد يمنعك من الانضمام حتى لو أعجبك البرنامج؟",["السعر","عدم توفر الوقت","عدم الثقة في النتيجة","عدم وضوح محتوى البرنامج","الخوف من عدم الالتزام","أحتاج رؤية نتائج طلاب سابقين","أحتاج تجربة جزء من البرنامج أولًا"],true),
+   R("trial_interest","إذا أطلقنا نسخة تجريبية أولى بسعر خاص مقابل التزامك بالتطبيق وإعطائنا Feedback، هل تهتم؟",["نعم، أرغب في معرفة التفاصيل","ربما، حسب السعر وطريقة البرنامج","لا حاليًا"]),
+   SCALE("readiness","ما مدى استعدادك للانضمام إلى برنامج كهذا؟","مجرد فضول","أبحث حاليًا عن حل ومستعد للبدء"),
+ ]},
+ {t:"التواصل",qs:[
+   R("whatsapp_consent","هل تسمح لنا بالتواصل معك عبر WhatsApp لفهم إجاباتك أو إرسال تفاصيل النسخة الأولى؟",["نعم، بكل سرور","نعم، لكن أرسل لي رسالة أولًا","لا، شكرًا"]),
+   R("call_consent","هل تقبل إجراء مكالمة قصيرة معنا للحديث عن تجربتك كإديتور؟",["نعم","ربما، حسب الوقت","لا"]),
+ ]},
+];
+
+/* ── الحالة ── */
+let step=0; // 0..SECTIONS.length-1
+const data=JSON.parse(localStorage.getItem(LS)||"{}");
+const form=document.getElementById('form');
+
+/* ── بناء قسم ── */
+function esc(s){const d=document.createElement('span');d.textContent=s;return d.innerHTML;}
+function renderStep(){
+  const sec=SECTIONS[step];
+  let h=`<div class="seccard"><div class="sechead"><div class="eyebrow">Section ${step+1} / ${SECTIONS.length}</div><h2>${esc(sec.t)}</h2></div>`;
+  sec.qs.forEach(q=>{
+    h+=`<div class="q" data-k="${q.k}"><label class="qlbl">${esc(q.label)}${q.req?' <span class="req">*</span>':''}</label>`;
+    if(q.hint)h+=`<div class="hint">${esc(q.hint)}</div>`;
+    const v=data[q.k];
+    if(q.type==='text'||q.type==='tel'){
+      const ltr=q.type==='tel';
+      h+=`<input type="${q.type==='tel'?'tel':'text'}" ${ltr?'dir="ltr"':''} data-in="${q.k}" value="${v?esc(v):''}" placeholder="${ltr?'+9665xxxxxxxx':''}">`;
+    } else if(q.type==='textarea'){
+      h+=`<textarea data-in="${q.k}" placeholder="اكتب إجابتك...">${v?esc(v):''}</textarea>`;
+    } else if(q.type==='scale'){
+      h+=`<div class="scale" data-scale="${q.k}">`;
+      for(let n=1;n<=10;n++)h+=`<button type="button" data-n="${n}" class="${v==n?'sel':''}">${n}</button>`;
+      h+=`</div><div class="scale-ends"><span>1 — ${esc(q.lo)}</span><span>${esc(q.hi)} — 10</span></div>`;
+    } else { // radio / checkbox
+      const cb=q.type==='checkbox';
+      h+=`<div class="opts" data-opts="${q.k}" data-type="${q.type}">`;
+      q.opts.forEach(o=>{
+        const on=cb?(Array.isArray(v)&&v.includes(o)):(v===o);
+        h+=`<label class="opt ${cb?'cb':''} ${on?'sel':''}"><span class="box"></span><span class="txt">${esc(o)}</span><input type="${cb?'checkbox':'radio'}" name="${q.k}" value="${esc(o)}" ${on?'checked':''}></label>`;
+      });
+      if(q.other){
+        const ov=data[q.k+'__other'];
+        const oon=cb?(Array.isArray(v)&&v.includes('__other__')):(v==='__other__');
+        h+=`<label class="opt ${cb?'cb':''} ${oon?'sel':''}" data-other-opt><span class="box"></span><span class="txt">شيء آخر…</span><input type="${cb?'checkbox':'radio'}" name="${q.k}" value="__other__" ${oon?'checked':''}></label>`;
+        h+=`<div class="otherwrap ${oon?'on':''}" data-other="${q.k}"><input type="text" data-in="${q.k}__other" value="${ov?esc(ov):''}" placeholder="اكتب هنا..."></div>`;
+      }
+      h+=`</div>`;
+    }
+    h+=`</div>`;
+  });
+  h+=`<div class="err-msg" id="stepErr"></div>`;
+  h+=`<div class="nav">`;
+  if(step>0)h+=`<button type="button" class="btn-ghost" id="backBtn">رجوع</button>`;
+  h+=`<button type="button" class="btn btn-primary" id="nextBtn">${step===SECTIONS.length-1?'إرسال ✓':'التالي'}</button></div></div>`;
+  form.innerHTML=h;
+  wire();
+  updateProgress();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function updateProgress(){
+  document.getElementById('stepno').textContent=`${step+1} / ${SECTIONS.length}`;
+  document.getElementById('pfill').style.width=(100*(step+1)/SECTIONS.length)+'%';
+}
+function save(){localStorage.setItem(LS,JSON.stringify(data));}
+
+function wire(){
+  form.querySelectorAll('[data-in]').forEach(el=>{
+    el.addEventListener('input',()=>{data[el.dataset.in]=el.value;save();el.classList.remove('bad');});
+  });
+  form.querySelectorAll('[data-opts]').forEach(grp=>{
+    const k=grp.dataset.opts,cb=grp.dataset.type==='checkbox';
+    grp.querySelectorAll('.opt').forEach(opt=>{
+      const inp=opt.querySelector('input');
+      inp.addEventListener('change',()=>{
+        if(cb){
+          const arr=Array.isArray(data[k])?data[k]:[];
+          if(inp.checked){if(!arr.includes(inp.value))arr.push(inp.value);}
+          else{const i=arr.indexOf(inp.value);if(i>=0)arr.splice(i,1);}
+          data[k]=arr;
+          opt.classList.toggle('sel',inp.checked);
+        } else {
+          data[k]=inp.value;
+          grp.querySelectorAll('.opt').forEach(o=>o.classList.toggle('sel',o.querySelector('input').checked));
+        }
+        // إظهار حقل «آخر»
+        const ow=grp.parentElement.querySelector(`[data-other="${k}"]`);
+        if(ow){const active=cb?(Array.isArray(data[k])&&data[k].includes('__other__')):(data[k]==='__other__');ow.classList.toggle('on',active);}
+        save();
+        const e=document.getElementById('stepErr');if(e)e.classList.remove('on');
+      });
+    });
+  });
+  form.querySelectorAll('[data-scale]').forEach(sc=>{
+    const k=sc.dataset.scale;
+    sc.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+      data[k]=+b.dataset.n;save();
+      sc.querySelectorAll('button').forEach(x=>x.classList.toggle('sel',x===b));
+    }));
+  });
+  const nb=document.getElementById('nextBtn');if(nb)nb.onclick=next;
+  const bb=document.getElementById('backBtn');if(bb)bb.onclick=()=>{step--;renderStep();};
+}
+
+function validate(){
+  for(const q of SECTIONS[step].qs){
+    if(!q.req)continue;
+    const v=data[q.k];
+    const empty=(v===undefined||v===null||v===''||(Array.isArray(v)&&!v.length));
+    if(empty){
+      const el=form.querySelector(`[data-in="${q.k}"]`)||form.querySelector(`[data-k="${q.k}"]`);
+      if(el&&el.classList)el.classList.add('bad');
+      return 'فيه سؤال إجباري (*) لسه ما جاوبته.';
+    }
+    if(q.k==='whatsapp'&&!/[0-9]{6,}/.test((v||'').replace(/\D/g,''))){
+      form.querySelector('[data-in="whatsapp"]').classList.add('bad');
+      return 'اكتب رقم واتساب صحيح مع رمز الدولة.';
+    }
+  }
+  return null;
+}
+
+function next(){
+  const err=validate();
+  const box=document.getElementById('stepErr');
+  if(err){box.textContent=err;box.classList.add('on');return;}
+  if(step<SECTIONS.length-1){step++;renderStep();}
+  else submit();
+}
+
+async function submit(){
+  const btn=document.getElementById('nextBtn');
+  btn.disabled=true;btn.textContent='... جارٍ الإرسال';
+  const payload=Object.assign({},data,{
+    submittedAt:new Date().toISOString(),
+    ua:navigator.userAgent.slice(0,180)
+  });
+  try{
+    await addDoc(collection(db,COLLECTION),payload);
+    localStorage.removeItem(LS);
+    document.getElementById('topbar').style.display='none';
+    form.style.display='none';
+    document.getElementById('doneScreen').classList.add('on');
+  }catch(e){
+    btn.disabled=false;btn.textContent='إرسال ✓';
+    const box=document.getElementById('stepErr');
+    box.textContent='تعذّر الإرسال — تأكد من الإنترنت وحاول مرة ثانية.';box.classList.add('on');
+  }
+}
+
+/* ── الإقلاع ── */
+document.getElementById('startBtn').onclick=()=>{
+  document.getElementById('introScreen').style.display='none';
+  document.getElementById('topbar').style.display='block';
+  form.style.display='block';
+  // استئناف من آخر قسم فيه إجابات
+  renderStep();
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elite Editor — لوحة التحكم</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{--blue:#0f6bff;--btn:#0066ff;--label:#3f8bff;--red:#d06a6a;--ink:#0f1720;--soft:#5b6472;--faint:#76808f;
+  --line:#e8ecf3;--bg:#f6f8fc;--card:#fff;--ok:#128a4f;--ar:'IBM Plex Sans Arabic',sans-serif;--mono:'IBM Plex Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--ar);background:var(--bg);color:var(--ink);line-height:1.7;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px 70px}
+.mono{font-family:var(--mono);direction:ltr;unicode-bidi:plaintext}
+
+/* تسجيل دخول */
+#login{max-width:380px;margin:12vh auto;text-align:center}
+#login .brand{font-weight:700;font-size:20px;margin-bottom:6px}
+#login .brand .dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--blue);margin-left:6px}
+#login p{color:var(--faint);font-size:13.5px;margin-bottom:22px}
+#login input{width:100%;font-family:var(--ar);font-size:15px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;outline:none;direction:ltr;text-align:right}
+#login input:focus{border-color:rgba(15,107,255,.5)}
+#login button{width:100%;height:48px;background:var(--btn);color:#fff;border:0;border-radius:60px;font-family:var(--ar);font-weight:600;font-size:16px;cursor:pointer}
+#login .msg{color:#c0392b;font-size:13px;margin-top:10px;min-height:18px}
+
+/* هيدر */
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:26px 0 8px;flex-wrap:wrap}
+header .brand{font-weight:700;font-size:19px;display:flex;align-items:center;gap:8px}
+header .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--blue)}
+header .tools{display:flex;gap:8px;align-items:center}
+.ibtn{font-family:var(--ar);font-size:13px;font-weight:600;border:1px solid var(--line);background:#fff;color:var(--soft);border-radius:99px;padding:7px 16px;cursor:pointer}
+.ibtn:hover{border-color:rgba(15,107,255,.4);color:var(--blue)}
+.ibtn.p{background:var(--btn);color:#fff;border:0}
+
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;color:var(--label);text-transform:uppercase;direction:ltr;margin:30px 0 12px}
+
+/* بطاقات إحصائية */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:720px){.stats{grid-template-columns:1fr 1fr}}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 16px;text-align:center}
+.stat .v{font-family:var(--mono);font-size:28px;font-weight:500;color:var(--blue);direction:ltr}
+.stat .k{font-size:13px;color:var(--soft);margin-top:2px}
+
+/* تحليل */
+.agrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:720px){.agrid{grid-template-columns:1fr}}
+.acard{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 20px}
+.acard h3{font-size:14.5px;font-weight:700;margin-bottom:12px}
+.drow{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.drow .dl{flex:0 0 42%;font-size:12.5px;color:var(--soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.drow .db{flex:1;height:8px;background:#eef2f8;border-radius:99px;overflow:hidden;direction:ltr}
+.drow .db i{display:block;height:100%;background:var(--blue);border-radius:99px}
+.drow .dc{flex:0 0 34px;font-family:var(--mono);font-size:12px;color:var(--faint);direction:ltr;text-align:left}
+
+/* واتساب */
+.wa-row{display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--line);font-size:13.5px}
+.wa-row:first-child{border-top:0}
+.wa-row .n{flex:1;font-weight:600}
+.wa-row .num{font-family:var(--mono);direction:ltr}
+.wa-row a{color:var(--ok);text-decoration:none;font-weight:600;font-size:12.5px}
+
+/* جدول الردود */
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+th,td{text-align:right;padding:11px 14px;font-size:13.5px;border-bottom:1px solid var(--line)}
+th{background:#f1f5fb;font-weight:700;font-size:12.5px;color:var(--soft)}
+tr:last-child td{border-bottom:0}
+tr.clk{cursor:pointer}
+tr.clk:hover{background:#f6f9ff}
+.badge{font-family:var(--mono);font-size:11px;border-radius:99px;padding:2px 9px;direction:ltr}
+.badge.hi{background:#e9f1ff;color:var(--btn)}
+
+/* تفصيل رد */
+#detail{display:none;position:fixed;inset:0;z-index:40;background:rgba(15,23,32,.4);backdrop-filter:blur(3px);padding:20px;overflow:auto}
+#detail.on{display:block}
+.dcard{max-width:680px;margin:24px auto;background:#fff;border-radius:20px;padding:26px 24px}
+.dcard .dh{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.dcard .dh h2{font-size:18px;font-weight:700}
+.dcard .x{border:1px solid var(--line);background:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:15px;color:var(--soft)}
+.qa{padding:10px 0;border-top:1px dashed rgba(0,0,0,.08)}
+.qa:first-child{border-top:0}
+.qa .ql{font-size:12.5px;color:var(--faint);margin-bottom:2px}
+.qa .qv{font-size:14.5px;font-weight:500}
+.empty{text-align:center;color:var(--faint);padding:40px 0;font-size:15px}
+</style>
+</head>
+<body>
+
+<!-- تسجيل دخول -->
+<div id="login">
+  <div class="brand"><span class="dot"></span>Elite Editor — لوحة التحكم</div>
+  <p>الدخول لأمين فقط</p>
+  <input id="email" type="email" placeholder="Email" autocomplete="username">
+  <input id="pass" type="password" placeholder="Password" autocomplete="current-password">
+  <button id="loginBtn">دخول</button>
+  <div class="msg" id="loginMsg"></div>
+</div>
+
+<!-- التطبيق -->
+<div id="app" style="display:none"><div class="wrap">
+  <header>
+    <span class="brand"><span class="dot"></span>Elite Editor — الردود</span>
+    <div class="tools">
+      <button class="ibtn" id="refreshBtn">⟳ تحديث</button>
+      <button class="ibtn p" id="csvBtn">⬇ تصدير CSV</button>
+      <button class="ibtn" id="logoutBtn">خروج</button>
+    </div>
+  </header>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="eyebrow">Analytics — تحليل تجميعي</div>
+  <div class="agrid" id="analytics"></div>
+
+  <div class="eyebrow">WhatsApp — من وافق على التواصل</div>
+  <div class="acard" id="waList"><div class="empty">—</div></div>
+
+  <div class="eyebrow">كل الردود</div>
+  <div id="tableWrap"><div class="empty">جارٍ التحميل…</div></div>
+</div></div>
+
+<div id="detail"><div class="dcard"><div class="dh"><h2>تفاصيل الرد</h2><button class="x" id="dClose">✕</button></div><div id="dBody"></div></div></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyCZhafPqlaBoapQ8df0Y_U8KzKyHKsNE-k",
+  authDomain: "hiring-9104c.firebaseapp.com",
+  projectId: "hiring-9104c",
+  storageBucket: "hiring-9104c.firebasestorage.app",
+  messagingSenderId: "300070302147",
+  appId: "1:300070302147:web:f6af240cb1f74763308d76"
+};
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app), auth=getAuth(app);
+const COLLECTION="elite_responses";
+
+/* خريطة الأسئلة: مفتاح → {label, kind} — kind: choice|multi|scale|text */
+const F={
+ name:["الاسم","text"],whatsapp:["واتساب","text"],country:["الدولة","text"],
+ current_status:["الوضع الحالي","choice"],experience:["مدة الخبرة","choice"],
+ software:["البرامج","multi"],video_types:["أنواع الفيديو","multi"],self_rating:["تقييم المستوى (1-10)","scale"],
+ portfolio:["Portfolio","choice"],price_per_video:["سعر الفيديو الحالي","choice"],monthly_income:["الدخل الشهري","choice"],
+ opportunity_sources:["مصادر الفرص","multi"],biggest_barrier:["أكبر عائق","choice"],
+ biggest_challenge:["أكبر تحدٍّ","text"],challenge_impact:["أثر التحدي","text"],tried_before:["ما جربه","text"],why_didnt_work:["لماذا لم ينجح","text"],
+ one_problem:["مشكلة واحدة يحلها","text"],concrete_result:["النتيجة الملموسة","text"],most_valuable:["الأكثر قيمة","choice"],
+ target_price:["السعر المستهدف","choice"],target_income:["الدخل المستهدف","choice"],realistic_timeframe:["المدة الواقعية","choice"],
+ why_important:["لماذا مهمة","text"],what_changes:["ما سيتغير","text"],
+ most_attractive_promise:["الوعد الأجذب","choice"],success_sentence:["جملة النجاح","text"],must_include:["يجب أن يتضمن","text"],
+ support_needed:["الدعم المطلوب","multi"],stage_needed:["المرحلة المطلوبة","choice"],ready_projects_feedback:["الاستعداد للتطبيق","choice"],weekly_hours:["ساعات أسبوعية","choice"],
+ budget:["الميزانية","choice"],what_makes_yes:["ما يجعله يوافق","text"],what_prevents:["موانع الانضمام","multi"],trial_interest:["اهتمام بالتجريبية","choice"],readiness:["الاستعداد (1-10)","scale"],
+ whatsapp_consent:["موافقة واتساب","choice"],call_consent:["موافقة مكالمة","choice"],
+};
+/* الحقول التي نعرض توزيعها في التحليل */
+const ANALYZE=["current_status","experience","price_per_video","monthly_income","biggest_barrier","budget","stage_needed","most_valuable","trial_interest","realistic_timeframe"];
+
+let ROWS=[];
+const $=id=>document.getElementById(id);
+const esc=s=>{const d=document.createElement('span');d.textContent=(s??'');return d.innerHTML;};
+const val=v=>Array.isArray(v)?v.map(x=>x==='__other__'?'آخر':x).join('، '):(v==='__other__'?'آخر':v);
+
+/* دخول */
+$('loginBtn').onclick=async()=>{
+  $('loginMsg').textContent='';
+  try{await signInWithEmailAndPassword(auth,$('email').value.trim(),$('pass').value);}
+  catch(e){$('loginMsg').textContent='بيانات الدخول غير صحيحة';}
+};
+$('pass').addEventListener('keydown',e=>{if(e.key==='Enter')$('loginBtn').click();});
+$('logoutBtn').onclick=()=>signOut(auth);
+onAuthStateChanged(auth,u=>{
+  if(u){$('login').style.display='none';$('app').style.display='block';load();}
+  else{$('login').style.display='block';$('app').style.display='none';}
+});
+
+async function load(){
+  $('tableWrap').innerHTML='<div class="empty">جارٍ التحميل…</div>';
+  let snap;
+  try{snap=await getDocs(query(collection(db,COLLECTION),orderBy('submittedAt','desc')));}
+  catch(e){snap=await getDocs(collection(db,COLLECTION));}
+  ROWS=snap.docs.map(d=>({id:d.id,...d.data()}));
+  render();
+}
+$('refreshBtn').onclick=load;
+
+function render(){
+  // إحصائيات
+  const n=ROWS.length;
+  const avg=k=>{const a=ROWS.map(r=>+r[k]).filter(x=>!isNaN(x));return a.length?(a.reduce((s,x)=>s+x,0)/a.length).toFixed(1):'—';};
+  const hiIntent=ROWS.filter(r=>+r.readiness>=8).length;
+  const wantsTrial=ROWS.filter(r=>String(r.trial_interest||'').startsWith('نعم')).length;
+  $('stats').innerHTML=[
+    ['الردود',n],['متوسط الاستعداد',avg('readiness')],['جاهزون (8+)',hiIntent],['يريدون التجريبية',wantsTrial]
+  ].map(([k,v])=>`<div class="stat"><div class="v">${v}</div><div class="k">${k}</div></div>`).join('');
+
+  // تحليل توزيعات
+  $('analytics').innerHTML=ANALYZE.map(k=>{
+    const counts={};ROWS.forEach(r=>{const v=r[k];if(v==null||v==='')return;counts[v]=(counts[v]||0)+1;});
+    const items=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+    const max=items.length?items[0][1]:1;
+    if(!items.length)return '';
+    return `<div class="acard"><h3>${F[k][0]}</h3>`+items.map(([lbl,c])=>
+      `<div class="drow"><span class="dl" title="${esc(lbl)}">${esc(lbl)}</span><span class="db"><i style="width:${Math.max(6,100*c/max)}%"></i></span><span class="dc">${c}</span></div>`
+    ).join('')+`</div>`;
+  }).join('');
+
+  // واتساب
+  const wa=ROWS.filter(r=>String(r.whatsapp_consent||'').startsWith('نعم'));
+  $('waList').innerHTML=wa.length?wa.map(r=>{
+    const num=String(r.whatsapp||'').replace(/[^0-9]/g,'');
+    return `<div class="wa-row"><span class="n">${esc(r.name)}</span><span class="num">${esc(r.whatsapp)}</span>`+
+      (num?`<a href="https://wa.me/${num}" target="_blank">فتح واتساب ↗</a>`:'')+`</div>`;
+  }).join(''):'<div class="empty">لا أحد وافق بعد</div>';
+
+  // الجدول
+  if(!n){$('tableWrap').innerHTML='<div class="empty">لا ردود بعد — شارك رابط الفورم 🙂</div>';return;}
+  $('tableWrap').innerHTML=`<table><thead><tr><th>الاسم</th><th>الدولة</th><th>الوضع</th><th>الاستعداد</th><th>التاريخ</th></tr></thead><tbody>`+
+    ROWS.map((r,i)=>{
+      const hi=+r.readiness>=8;
+      const d=r.submittedAt?new Date(r.submittedAt):null;
+      const ds=d?`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`:'—';
+      return `<tr class="clk" data-i="${i}"><td>${esc(r.name)}</td><td>${esc(r.country)}</td><td style="font-size:12.5px">${esc(r.current_status||'—')}</td>`+
+        `<td><span class="badge ${hi?'hi':''} mono">${r.readiness||'—'}</span></td><td class="mono">${ds}</td></tr>`;
+    }).join('')+`</tbody></table>`;
+  $('tableWrap').querySelectorAll('tr.clk').forEach(tr=>tr.onclick=()=>openDetail(ROWS[+tr.dataset.i]));
+}
+
+function openDetail(r){
+  $('dBody').innerHTML=Object.keys(F).map(k=>{
+    const v=r[k];if(v==null||v===''||(Array.isArray(v)&&!v.length))return '';
+    let ov=val(v);
+    if(v==='__other__'||(Array.isArray(v)&&v.includes('__other__')))ov+=r[k+'__other']?` (${r[k+'__other']})`:'';
+    return `<div class="qa"><div class="ql">${esc(F[k][0])}</div><div class="qv">${esc(ov)}</div></div>`;
+  }).join('');
+  $('detail').classList.add('on');
+}
+$('dClose').onclick=()=>$('detail').classList.remove('on');
+$('detail').onclick=e=>{if(e.target.id==='detail')$('detail').classList.remove('on');};
+
+/* CSV */
+$('csvBtn').onclick=()=>{
+  const keys=Object.keys(F);
+  const head=['submittedAt',...keys.map(k=>F[k][0])];
+  const esc2=s=>`"${String(s??'').replace(/"/g,'""')}"`;
+  const lines=[head.map(esc2).join(',')];
+  ROWS.forEach(r=>{
+    lines.push([r.submittedAt||'',...keys.map(k=>{let v=r[k];if(Array.isArray(v))v=v.map(x=>x==='__other__'?'آخر':x).join(' | ');if(v==='__other__')v='آخر';return v;})].map(esc2).join(','));
+  });
+  const blob=new Blob(['﻿'+lines.join('\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='elite-editor-responses.csv';a.click();
+};
+</script>
+</body>
+</html>
