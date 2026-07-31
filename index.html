@@ -140,6 +140,7 @@ textarea.tin{min-height:110px;resize:vertical;line-height:1.7;font-size:15.5px}
   font-size:34px;margin:0 auto 22px;box-shadow:0 16px 34px -16px rgba(93,63,240,.7)}
 .done h2{font-size:clamp(21px,4.5vw,26px);font-weight:600;letter-spacing:-.01em;margin-bottom:12px}
 .done p{color:var(--soft);font-size:15px;line-height:1.75}
+.done .gift{margin-top:22px;text-decoration:none}
 .done .sig{margin-top:24px;font-family:var(--mono);font-size:12px;color:var(--brand-ink);letter-spacing:.14em;direction:ltr;font-weight:600}
 .founders{display:flex;flex-direction:column;gap:7px;margin-top:14px;align-items:center}
 .founders div{display:flex;align-items:center;gap:8px}
@@ -166,6 +167,7 @@ textarea.tin{min-height:110px;resize:vertical;line-height:1.7;font-size:15.5px}
 <main class="stage-wrap" id="stageWrap">
   <div class="hero">
     <div class="typewriter" id="tw"><span class="tw-text"></span><span class="tw-hl"></span></div>
+    <p class="subhero">نريد فهم واقع الإديتورز الذين سبق لهم العمل مع عملاء: ما الذي يضغطهم؟ وكيف يديرون مشاريعهم؟ وما المستوى الذي يريدون الوصول إليه؟<br><span style="color:var(--brand-ink);font-weight:600">يستغرق 5–7 دقائق · بعد الإرسال تحصل على حزمة SFX أستخدمها شخصيًا 🎁</span></p>
   </div>
   <div class="stage" id="stage"></div>
 </main>
@@ -173,8 +175,9 @@ textarea.tin{min-height:110px;resize:vertical;line-height:1.7;font-size:15.5px}
 <section class="done" id="done">
   <div class="card2">
     <div class="ic">✓</div>
-    <h2>شكرًا لمساعدتك 🙏</h2>
-    <p>إجاباتك ستساعدنا فعلًا في بناء تدريب يناسب الإديتورز مثلك. سنراجعها بعناية، وقد نتواصل معك عبر واتساب لإرسال المحتوى أو تفاصيل النسخة الأولى من التدريب. نراك من الإديتورز الجادّين.</p>
+    <h2>شكرًا لمشاركتك 🤍</h2>
+    <p>هذه هديتك: <b>حزمة SFX أستخدمها شخصيًا</b>.</p>
+    <a class="btn prim gift" href="https://drive.google.com/drive/folders/1Kd1xA7VKi_V5N5KFl-YWsSKr_e6m_lj0?usp=drive_link" target="_blank" rel="noopener">🎁 تحميل حزمة الـSFX</a>
     <div class="sig">E EDIT COMMUNITY</div>
     <div class="founders">
       <div><span class="role">FOUNDER</span><a href="https://www.instagram.com/mohamed.__.lak/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg>@mohamed.__.lak</a></div>
@@ -194,7 +197,7 @@ const firebaseConfig = {
   appId: "1:705152552088:web:c9b082ee8d5f0a1565d4ed"
 };
 const COLLECTION="elite_responses";
-const LS="elite_editor_form_v7";
+const LS="elite_editor_form_v8";
 /* الكتابة عبر REST API مباشرة — يتجاوز مانع الإعلانات الذي يحجب اتصال الـSDK */
 const FS_DBS=["default","(default)"]; // نجرّب الاسمين
 const fsDocs=id=>"https://firestore.googleapis.com/v1/projects/"+firebaseConfig.projectId+"/databases/"+id+"/documents";
@@ -213,25 +216,43 @@ function toFirestoreFields(obj){
 /* ── الأسئلة: مختصرة وفعّالة (سؤال واحد لكل شاشة) ── */
 const Q=[
  {k:"name",type:"text",label:"ما اسمك؟",req:true,ph:"اكتب اسمك"},
- {k:"whatsapp",type:"tel",label:"ما رقمك على WhatsApp؟",hint:"نستخدمه للتواصل معك وإرسال تفاصيل التدريب — بلا إزعاج، قيمة حقيقية فقط.",req:true,ph:"+212 6 00 00 00 00"},
- {k:"age",type:"radio",label:"كم عمرك؟",req:true,opts:["18 – 24","25 – 34","35 – 44","45 فأكثر"]},
- {k:"current_status",type:"radio",label:"ما وضعك الحالي كإديتور؟",req:true,opts:[
-   "ما زلت أتعلّم الإيديتنج","إديتور مستقل أعمل مع عملاء","أعمل داخل فريق أو وكالة","أبحث عن أول فرصة عمل"]},
- {k:"monthly_income",type:"radio",label:"كم يبلغ دخلك الشهري من الإيديتنج حاليًا؟",req:true,opts:[
-   "لا أحقق دخلًا بعد","أقل من 200$","من 200$ إلى 499$","من 500$ إلى 999$","1000$ أو أكثر"]},
- {k:"biggest_barrier",type:"radio",label:"ما أكبر عائق يمنعك من رفع دخلك من الإيديتنج؟",req:true,other:true,opts:[
-   "مستوايَ التقني غير كافٍ","لا أملك Portfolio قويًا","لا أعرف كيف أجد عملاء أفضل","لا أعرف كيف أبيع مهارتي"]},
- {k:"main_struggle",type:"textarea",label:"بأسلوبك الخاص: ما أكبر مشكلة تواجهك الآن كإديتور؟",hint:"اكتب ما يعيقك أو يتعبك فعلًا.",req:true,ph:"اكتب مشكلتك هنا..."},
- {k:"most_valuable",type:"radio",label:"ما النتيجة الأهم التي تريد الوصول إليها؟",req:true,opts:[
-   "رفع جودة أعمالي","مضاعفة دخلي الشهري","الحصول على عميل ثابت","تعلّم كيف أبيع مهارتي"]},
- {k:"training_wants",type:"checkbox",label:"ما الذي تريد أن يتضمّنه التدريب؟",hint:"اختر كل ما تحتاجه — يمكنك اختيار أكثر من إجابة.",req:true,other:true,opts:[
-   "دروس مسجّلة ومنظّمة","مشاريع عملية مع Feedback على أعمالي","مجتمع (Community) للإديتورز","جلسات مباشرة (Live)","قوالب وTemplates جاهزة","تدريب على إيجاد العملاء وبيع المهارة"]},
- {k:"budget",type:"radio",label:"كم يمكنك أن تستثمر لتصل إلى هدفك بشكل أسرع؟",req:true,opts:[
-   "0$ — لست مستعدًا حاليًا","1$ – 99$ — أبدأ بخطوات بسيطة","100$ – 499$ — مهتم وأبحث عن القيمة","500$ أو أكثر — مستعد وأبحث عن نتائج قوية"]},
- {k:"trial_interest",type:"radio",label:"إذا أطلقنا نسخة تجريبية أولى بسعر خاص، فهل يهمّك الأمر؟",req:true,opts:[
-   "نعم، أرغب في معرفة التفاصيل","ربما، بحسب السعر","لا في الوقت الحالي"]},
- {k:"whatsapp_consent",type:"radio",label:"هل تسمح لنا بالتواصل معك عبر واتساب لاحقًا؟",req:true,opts:[
-   "نعم، بكل سرور","لا، شكرًا"]},
+ {k:"whatsapp",type:"tel",label:"ما رقمك على WhatsApp؟",hint:"لإرسال الجديد والتواصل — بلا إزعاج.",req:true,ph:"+212 6 00 00 00 00"},
+ {k:"clients_count",type:"radio",label:"كم عميلًا تعاملت معه؟",req:true,opts:[
+   "لم أتعامل مع عميل","1–3","4–10","أكثر من 10","أعمل باستمرار مع عملاء"]},
+ {k:"work_mode",type:"radio",label:"كيف تعمل حاليًا؟",req:true,opts:[
+   "فريلانسر كامل","بجانب الدراسة","بجانب وظيفة","داخل شركة أو وكالة","مع عميل واحد","مع عدة عملاء","أبحث عن عمل"]},
+ {k:"level",type:"radio",label:"كيف تصف مستواك؟",req:true,opts:[
+   "أعرف الأدوات لكن خبرتي مع العملاء محدودة","أستطيع تنفيذ وتسليم فيديو كامل","مستواي التقني جيد لكن نظام عملي ضعيف","متقدم لكن أشعر أنني عالق"]},
+ {k:"pressures",type:"checkbox",label:"ما أكثر ما يضغطك؟",hint:"اختر كل ما ينطبق.",req:true,other:true,opts:[
+   "الملفات والمعلومات مبعثرة","المطلوب غير واضح","تعديلات كثيرة أو مفاجئة","مواعيد متقاربة","لا أنظم المهام","أتأخر في التسليم","أسهر حتى أنهي العمل","الجهاز أو المشروع بطيء","لا أعرف من أين أبدأ","أقضي اليوم كله في المونتاج","التعامل مع العملاء","الأسعار المنخفضة","الدخل غير مستقر","البحث المستمر عن عملاء","فقدان المتعة أو Burnout"]},
+ {k:"bad_day",type:"textarea",label:"صف يومًا سيئًا مرّ عليك كإديتور.",hint:"ماذا حدث؟ إلى أي ساعة عملت؟ وبماذا شعرت؟",req:true,ph:"اكتب هنا..."},
+ {k:"organize",type:"radio",label:"كيف تنظّم مشاريعك؟",req:true,opts:[
+   "أعتمد على الذاكرة","أرجع إلى WhatsApp","ورقة أو Notes","Google Keep","Notion أو Trello","أكثر من مكان والأمور مبعثرة","لدي نظام واضح"]},
+ {k:"files_delivery",type:"radio",label:"كيف تصلك الملفات والملاحظات؟",req:true,opts:[
+   "WhatsApp","Telegram","Google Drive","Screenshots ورسائل متفرقة","الملفات ناقصة","تصل تفاصيل جديدة بعد أن أبدأ"]},
+ {k:"urgent_edit",type:"radio",label:"عندما يأتي تعديل عاجل وأنت تعمل على مشروع آخر:",req:true,opts:[
+   "أترك المشروع الحالي وأبدأه فورًا","أؤجله لكنه يشغل تفكيري","أحاول العمل على الاثنين","أنفعل أو أفقد تركيزي","أضعه في موعد محدد","يعتمد على ضغط العميل"]},
+ {k:"workday_end",type:"radio",label:"متى ينتهي يوم عملك غالبًا؟",req:true,opts:[
+   "قبل 6 مساءً","6–9 مساءً","9–12 ليلًا","12–3 ليلًا","بعد 3","لا وقت ثابت؛ أنتهي عندما ينتهي الفيديو"]},
+ {k:"no_project_days",type:"radio",label:"ماذا يحدث عندما تمر أيام بلا مشروع؟",req:true,opts:[
+   "أرتاح طبيعيًا","أخاف من توقف الدخل","أبحث عن أي شغل","أنشر محتوى لجذب عميل","أقبل بسعر أقل","أشعر أن الراحة خطر","أقول: لازم أجيب شغل"]},
+ {k:"client_questions",type:"radio",label:"ما الأسئلة التي يبدأ بها العميل؟",req:true,opts:[
+   "كم سعر الفيديو؟","كم مدة التسليم؟","كم تعديل؟","هل تقلد هذا الـStyle؟","أرسل أعمالك","ما رأيك في المحتوى؟","كيف نحسن النتيجة؟"]},
+ {k:"pricing_method",type:"radio",label:"كيف تحدد السعر؟",req:true,opts:[
+   "حسب مدة الفيديو","حسب الـStyle وصعوبة التنفيذ","حسب الوقت والتأثيرات","حسب ميزانية العميل","أضع سعرًا ثم أخفضه عند التفاوض","حسب قيمة المشروع ونتيجته","لا أملك طريقة ثابتة"]},
+ {k:"client_perception",type:"radio",label:"كيف يراك أغلب عملائك؟",req:true,opts:[
+   "منفذ فقط","جيد لكن سهل الاستبدال","يسألون رأيي أحيانًا","شريك في تطوير المحتوى","خبير يعتمدون عليه","لا أعرف"]},
+ {k:"desired_results",type:"checkbox",label:"ما أهم النتائج التي تريدها؟",hint:"اختر حتى ٥ نتائج.",req:true,maxSelect:5,opts:[
+   "الاستمتاع بالمونتاج","تجنب Burnout","إنجاز أسرع بجودة عالية","العمل 6–8 ساعات فقط","التخلص من السهر","تنظيم المشاريع والتعديلات","جذب العملاء بدل البحث عنهم","Premium Clients","رفع السعر","دخل أكبر ومستقر","علاقات أطول مع العملاء","أن يراني العميل شريكًا","أن أصبح صعب الاستبدال","أفكار وإخراج أفضل","فيديو يخدم الرسالة","وقت للصحة والنوم والرياضة والعلاقات","تطوير نفسي في مجالات أخرى","عيش حياة أفضل"]},
+ {k:"blockers",type:"radio",label:"ما الذي يمنعك من الوصول؟",req:true,opts:[
+   "أحتاج مهارة تقنية أقوى","3D أو جهاز أفضل","لغة إنجليزية أقوى","عملاء أجانب","Portfolio أفضل","لا أعرف كيف أرفع قيمتي أو أتموضع","لا أملك نظام عمل","لا أعرف كيف أجذب العميل المناسب","أخاف من رفع السعر أو خسارة العميل","لا أملك وقتًا للتطور","لا أعرف ما الذي ينقصني"]},
+ {k:"one_change",type:"textarea",label:"لو استطعت تغيير شيء واحد في حياتك كإديتور، ماذا سيكون؟",req:true,ph:"اكتب هنا..."},
+ {k:"trust_content",type:"radio",label:"ما نوع المحتوى الذي يجعلك تثق؟",req:true,opts:[
+   "Tutorials أدوات وAnimations","تطبيق على مشروع حقيقي","شرح نظام العمل من البداية للتسليم","حل مشكلات العملاء","التسعير ورفع القيمة","التموضع وجذب العملاء","Case Studies","Templates جاهزة","محتوى يفهم ضغط الإديتور"]},
+ {k:"join_blockers",type:"radio",label:"ما الذي قد يمنعك من دخول مجتمع أو برنامج؟",req:true,opts:[
+   "السعر","أفضل الاحتفاظ بالمال","توجد معلومات مجانية","أخاف ألا أطبق","لا أملك وقتًا","لا أستطيع ترك العملاء الحاليين","لا أثق بالوعود","أخاف ألا يناسب مستواي","لا أرى فرقًا عن الدورات الأخرى"]},
+ {k:"worth_paying",type:"textarea",label:"ما الذي يجب أن تراه قبل أن تقول: «هذه تستحق أن أدفع عليها»؟",req:true,ph:"اكتب هنا..."},
+ {k:"anon_consent",type:"radio",label:"هل تسمح باستخدام بعض إجاباتك في المحتوى بشكل مجهول؟",req:true,opts:["نعم","لا"]},
 ];
 
 const total=Q.length;
@@ -305,7 +326,12 @@ function wire(q){
       input.addEventListener('change',()=>{
         if(multi){
           let arr=Array.isArray(data[q.k])?data[q.k]:[];
-          if(input.checked){if(!arr.includes(input.value))arr.push(input.value);}
+          if(input.checked){
+            if(q.maxSelect && arr.length>=q.maxSelect && !arr.includes(input.value)){
+              input.checked=false; showErr('يمكنك اختيار حتى '+q.maxSelect+' فقط'); return;
+            }
+            if(!arr.includes(input.value))arr.push(input.value);
+          }
           else{arr=arr.filter(x=>x!==input.value);}
           data[q.k]=arr;
           opt.classList.toggle('sel',input.checked);
@@ -420,7 +446,7 @@ render();
 <!-- Typewriter headline (منقول للـvanilla من كومبوننت React) -->
 <script>
 (function(){
-  const PHRASE={text:"ساعدنا على بناء",highlight:"شيء يطوّرك."};
+  const PHRASE={text:"احصل على المؤثرات الصوتية",highlight:"المدفوعة التي أستخدمها شخصيًا"};
   const t=document.querySelector('#tw .tw-text');
   const hl=document.querySelector('#tw .tw-hl');
   if(!t||!hl)return;
